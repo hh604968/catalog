@@ -32,7 +32,7 @@ function Catalog( option ){
 /**
  * 初始化函数
  *
- * @param {Object}
+ * @param config | Object | 必选 | 配置对象
  */
 Catalog.prototype.init = function( config ){
 
@@ -50,10 +50,8 @@ Catalog.prototype.init = function( config ){
 
 /**
  * 读取目录的内容
- *
- * @param {String}
- * @param {Array}
- * @param {Object}
+ * @param config | Object | 必选 | 配置对象
+ * @param catalog | Object | 必选 | 目录对象
  */
 Catalog.prototype.getCatalog = function( config, catalog ){
 
@@ -95,8 +93,8 @@ Catalog.prototype.getCatalog = function( config, catalog ){
 /**
  * 生成json文件
  *
- * @param {String}
- * @param {String}
+ * @param from | String | 必选 | 从哪里开始写入
+ * @param to | String | 必选 | 写入到哪里
  */
 Catalog.prototype.production = function( from, to ){
     //创建目录
