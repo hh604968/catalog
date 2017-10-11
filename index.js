@@ -45,7 +45,7 @@ Catalog.prototype.init = function( config ){
     $util.filterEmptyNode( catalog );
 
     //生成json文件
-    this.production( path.join( process.cwd(), config.dest ), config.path );
+    this.production( config, catalog );
 }
 
 /**
@@ -73,7 +73,7 @@ Catalog.prototype.getCatalog = function( config, catalog ){
                     let fileName = file.substring( 0, file.lastIndexOf('.') );
                     for( let i = 0 ; i < config.names.length; i++ ){
                         if( fileName == config.names[i] ){
-                            tree[fileName] = path.relative( config.cite, directory );
+                            tree[fileName] = path.relative( path.join( config.dest, config.cite ), directory );
                         }
                     }
 
@@ -96,12 +96,14 @@ Catalog.prototype.getCatalog = function( config, catalog ){
  * @param from | String | 必选 | 从哪里开始写入
  * @param to | String | 必选 | 写入到哪里
  */
-Catalog.prototype.production = function( from, to ){
+Catalog.prototype.production = function( config, catalog ){
+    let from = path.resolve( config.dest );
+    let to = path.resolve( config.path );
     //创建目录
     fs.mkdir( from, ()=>{
         //文件写入
         fs.writeFile(
-            path.relative( to, path.join( from, path.basename( to ) +'.json' ) ), JSON.stringify(this._catalog), err => !!err? console.log( err ) : console.log( 'write success path: ' + from )
+            path.relative( to, path.join( from, path.basename( to ) +'.json' ) ), JSON.stringify(catalog), err => !!err? console.log( err ) : console.log( 'write success path: ' + from )
         );
     } );
 }
