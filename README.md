@@ -1,3 +1,4 @@
+##
 new require('catalog')({
     path : '', //目录地址
     dest: '', //json输出目的地
