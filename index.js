@@ -14,17 +14,19 @@ function Catalog( option ){
         return new Catalog(option);
     }
     
-    let def = {
+    var def = {
         path : '',
         dest: '',
+        cite: '',
         names: []
     };
+    //参数合并
     Object.assign( def, option );
 
-    this.catalogName = {};
-    this.dest = path.join( process.cwd(), def.dest );
+    //获取命令启动目录地址
+    this._dest = path.join( process.cwd(), def.dest );
 
-    this.init(def);
+    this.init( def );
 }
 
 /**
@@ -33,62 +35,75 @@ function Catalog( option ){
  * @param {Object}
  */
 Catalog.prototype.init = function( config ){
-    this.getCatalogName( config.path, config.names, this.catalogName );
-    $util.filtration( this.catalogName );
-    this.production( config.path );
+
+    let catalog = {};
+
+    //读取目录文件
+    this.getCatalog( config, catalog );
+
+    //过滤空属性
+    $util.filterEmptyNode( catalog );
+
+    //生成json文件
+    this.production( path.join( process.cwd(), config.dest ), config.path );
 }
 
 /**
- * 异步读取目录的内容
+ * 读取目录的内容
  *
  * @param {String}
  * @param {Array}
  * @param {Object}
  */
-Catalog.prototype.getCatalogName = function( dir, names, tree ){
-    //读取文件目录
-    fs.readdirSync( dir ).forEach( ( file )=>{
-        //获取子级文件目录名称
-        const directory = path.join( dir, file );
+Catalog.prototype.getCatalog = function( config, catalog ){
 
-        const stats = fs.statSync( directory );
+    function recursionReaddir( dir, tree ){
+        //读取文件目录
+        fs.readdirSync( dir ).forEach( ( file )=>{
+            //获取子级文件目录名称
+            const directory = path.join( dir, file );
 
-        if( stats.isFile() ){
-            //获取文件后缀名名称
-            let extName = path.extname( directory );
+            const stats = fs.statSync( directory );
 
-            if( extName == '.html' ){
+            if( stats.isFile() ){
+                //获取文件后缀名名称
+                let extName = path.extname( directory );
 
-                //加一下名称验证
-                let fileName = file.substring( 0, file.lastIndexOf('.') );
-                for( let i = 0 ; i < names.length; i++ ){
-                    if( fileName == names[i] ){
-                        tree[fileName] = path.relative( path.join( this.dest, '../' ), directory );
+                if( extName == '.html' ){
+
+                    //加一下名称验证
+                    let fileName = file.substring( 0, file.lastIndexOf('.') );
+                    for( let i = 0 ; i < config.names.length; i++ ){
+                        if( fileName == config.names[i] ){
+                            tree[fileName] = path.relative( config.cite, directory );
+                        }
                     }
+
                 }
+            }else if( stats.isDirectory() ){
+                tree[file] = {};
 
+                recursionReaddir( directory, tree[file] );
             }
-        }else if( stats.isDirectory() ){
-            tree[file] = {};
 
-            this.getCatalogName( directory, names, tree[file] );
-        }
+        });
+    }
 
-    });
+    recursionReaddir( config.path, catalog );
 }
 
 /**
  * 生成json文件
  *
  * @param {String}
- * @param {Object}
+ * @param {String}
  */
-Catalog.prototype.production = function( pathName ){
+Catalog.prototype.production = function( from, to ){
     //创建目录
-    fs.mkdir( this.dest, ()=>{
+    fs.mkdir( from, ()=>{
         //文件写入
         fs.writeFile(
-            path.relative( pathName, path.join( this.dest, path.basename( pathName ) +'.json' ) ), JSON.stringify(this.catalogName), err => !!err? console.log( err ) : console.log( '成功写入！' )
+            path.relative( to, path.join( from, path.basename( to ) +'.json' ) ), JSON.stringify(this._catalog), err => !!err? console.log( err ) : console.log( 'write success path: ' + from )
         );
     } );
 }
